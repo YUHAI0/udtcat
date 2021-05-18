@@ -249,7 +249,8 @@ void *recv_handler(void *recv_info_param)
 		}
 	    /* print message to stdout */
 	    // (void)write(STDOUT_FILENO, info -> buffer, recved_bytes);
-		(void)write(fd, info->buffer, recved_bytes);
+		
+		(void)fwrite(info->buffer, sizeof(char), recved_bytes, fd);
 	    /* increment receive counter */
 	    if(recved_bytes > 0)
 	    	total_recv_bytes += recved_bytes;
@@ -281,7 +282,7 @@ int server_mode(const char* const listen_port_string, char* filename)
   		epoll_events = EPOLLIN | EPOLLERR;
 
     pthread_t recv_handler_thread;
-    recv_info_t client_info = {0, NULL, 0};
+    recv_info_t client_info = {0, NULL, 0, NULL};
     struct sockaddr_storage client_addr;	    	 		
 
 	(void)memset(&server_addr_hints, 0, sizeof(struct addrinfo));
@@ -377,7 +378,9 @@ int server_mode(const char* const listen_port_string, char* filename)
     /* receive the message length */
 	FILE *fd = fopen(filename, "r");
 	//while(((send_buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
-	while(((send_buffer_len = read(fd, send_buffer, sizeof(send_buffer))) > 0 && 
+	const MAX_BUF_SIZE=1024
+	char pstr[MAX_BUF_SIZE]
+	while(((send_buffer_len = fread(pstr, sizeof(char), MAX_BUF_SIZE, fd)) > 0 && 
 		    !exit_flag) || print_st_flag)
     {
     	/* print sent/recv information and loop again*/
@@ -415,7 +418,7 @@ int client_mode(const char* const server_name, const char* const port_string, co
 	 	sent_bytes;   
 
 	pthread_t recv_handler_thread;
-	recv_info_t server_info = {0, NULL, 0};
+	recv_info_t server_info = {0, NULL, 0, NULL};
 
 	/* create communication endpoint */
 	server_fd = udt_socket(AF_INET, SOCK_STREAM, 0); 
@@ -460,8 +463,12 @@ int client_mode(const char* const server_name, const char* const port_string, co
     } 
     /* send main loop */
 	FILE* sf = fopen(filename, "r");
+
+	const MAX_BUF_SIZE = 1024;
+	char pstr[MAX_BUF_SIZE + 1];
+
     //while(((buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
-    while(((buffer_len = read(sf, send_buffer, sizeof(send_buffer))) > 0 && 
+    while(((buffer_len = fread(pstr, sizeof(char), MAX_BUF_SIZE, pstr)) > 0 && 
     	    !exit_flag) || print_st_flag)
     {
     	/* print sent/recv information and loop again*/
@@ -473,7 +480,8 @@ int client_mode(const char* const server_name, const char* const port_string, co
     			continue;
     	}
    	   	/* send the read message to the server */
-    	if( (sent_bytes = send_msg(server_fd, send_buffer, buffer_len)) == -1)
+    	// if( (sent_bytes = send_msg(server_fd, send_buffer, buffer_len)) == -1)
+    	if( (sent_bytes = send_msg(server_fd, pstr, buffer_len)) == -1)
     		continue;
     	/* increment sent byte counter */
    		total_sent_bytes += sent_bytes;
