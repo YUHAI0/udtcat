@@ -37,7 +37,7 @@ written by
    Tom Zhou, last updated 05/18/2012
 *****************************************************************************/
 
-#include <udt/udt.h>
+#include <udt.h>
 #include "udt-wrapper.h"
 
 extern "C" {

@@ -487,6 +487,7 @@ int main(int argc, char **argv)
 		retval 		=  0;
 
 	char port_string [PORT_STRING_LEN],
+		 filename [1024],
 		 hostname [MAX_HOSTNAME_LEN];
 
 	struct sigaction sa_sigset;
@@ -575,12 +576,18 @@ int main(int argc, char **argv)
 				print_version();
 				return EXIT_SUCCESS;
 
+			case 'f':
+				strncpy(filename, optarg, 1024)
+				break;
+
 			default:
 				(void)fprintf(stderr, "udtcat: unknown option\n");
 				usage();
 				return ERR_UNKNOWN_OPT;
 		}
 	}
+	printf("%s\n", filename);
+
     /* receive buffer size should be equal or greater than send buffer size */
     assert(RECV_BUFFER_SIZE >= SEND_BUFFER_SIZE);
 	/* initialize the udt library */
