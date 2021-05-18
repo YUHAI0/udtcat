@@ -380,9 +380,12 @@ int server_mode(const char* const listen_port_string, char* filename)
 	//while(((send_buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
 	const int MAX_BUF_SIZE=1024;
 	char pstr[MAX_BUF_SIZE];
+	printf("1##\n");
 	while(((send_buffer_len = fread(pstr, sizeof(char), MAX_BUF_SIZE, fd)) > 0 && 
 		    !exit_flag) || print_st_flag)
     {
+		printf("2##\n");
+
     	/* print sent/recv information and loop again*/
     	if(print_st_flag)
     	{
