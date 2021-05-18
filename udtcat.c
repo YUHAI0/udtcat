@@ -408,7 +408,7 @@ int server_mode(const char* const listen_port_string, char* filename)
  */
 int client_mode(const char* const server_name, const char* const port_string, char* filename)
 {
-	char send_buffer[END_BUFFER_SIZE],
+	char send_buffer[SEND_BUFFER_SIZE],
 	     recv_buffer[RECV_BUFFER_SIZE];
 
 	struct addrinfo host_addr_hints, 
