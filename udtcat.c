@@ -378,7 +378,7 @@ int server_mode(const char* const listen_port_string, char* filename)
     /* receive the message length */
 	FILE *fd = fopen(filename, "r");
 	//while(((send_buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
-	const MAX_BUF_SIZE=1024
+	const int MAX_BUF_SIZE=1024
 	char pstr[MAX_BUF_SIZE]
 	while(((send_buffer_len = fread(pstr, sizeof(char), MAX_BUF_SIZE, fd)) > 0 && 
 		    !exit_flag) || print_st_flag)
@@ -406,9 +406,9 @@ int server_mode(const char* const listen_port_string, char* filename)
 /* brief : run the program in client mode.
    return: 0 on success, -1 otherwise.
  */
-int client_mode(const char* const server_name, const char* const port_string, const char* filename)
+int client_mode(const char* const server_name, const char* const port_string, char* filename)
 {
-	char send_buffer[SEND_BUFFER_SIZE],
+	char send_buffer[END_BUFFER_SIZE],
 	     recv_buffer[RECV_BUFFER_SIZE];
 
 	struct addrinfo host_addr_hints, 
@@ -464,11 +464,11 @@ int client_mode(const char* const server_name, const char* const port_string, co
     /* send main loop */
 	FILE* sf = fopen(filename, "r");
 
-	const MAX_BUF_SIZE = 1024;
+	const int MAX_BUF_SIZE = 1024;
 	char pstr[MAX_BUF_SIZE + 1];
 
     //while(((buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
-    while(((buffer_len = fread(pstr, sizeof(char), MAX_BUF_SIZE, pstr)) > 0 && 
+    while(((buffer_len = fread(pstr, sizeof(char), MAX_BUF_SIZE, sf)) > 0 && 
     	    !exit_flag) || print_st_flag)
     {
     	/* print sent/recv information and loop again*/
