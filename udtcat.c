@@ -98,6 +98,7 @@ typedef struct recv_info
 	int  socket_fd;
 	char *buffer;
 	int  buffer_size;
+	char *filename;
 }recv_info_t;
 
 /* SIGTERM and SIGINT handler.
@@ -227,6 +228,7 @@ void *recv_handler(void *recv_info_param)
 {
 	int recved_bytes = 0;
 	recv_info_t *info =  (recv_info_t*)recv_info_param;
+	int fd = fopen(info->filename, "w+");
 	while(TRUE)
 	{
 		if((recved_bytes = recv_msg(info -> socket_fd, info -> buffer, info ->  buffer_size)) == -1)
@@ -246,18 +248,21 @@ void *recv_handler(void *recv_info_param)
 			/*continue;*/
 		}
 	    /* print message to stdout */
-	    (void)write(STDOUT_FILENO, info -> buffer, recved_bytes);
+	    // (void)write(STDOUT_FILENO, info -> buffer, recved_bytes);
+		(void)write(fd, info->buffer, recved_bytes);
 	    /* increment receive counter */
 	    if(recved_bytes > 0)
 	    	total_recv_bytes += recved_bytes;
 	}
+	fclose(fd);
+
 	return NULL;
 }
 
 /* brief : run the program in server mode.
    return: 0 on success, -1 otherwise.
  */
-int server_mode(const char* const listen_port_string)
+int server_mode(const char* const listen_port_string, char* filename)
 {
 	struct addrinfo server_addr_hints,
 	    	 		*server_addr_res;
@@ -357,6 +362,7 @@ int server_mode(const char* const listen_port_string)
     client_info.socket_fd = client_fd;
 	client_info.buffer = recv_buffer; 
 	client_info.buffer_size = sizeof(recv_buffer);
+	client_info.filename = filename;
     /* create the receiving thread */
     if(pthread_create(&recv_handler_thread, NULL, recv_handler, &client_info) < 0)
     {
@@ -395,7 +401,7 @@ int server_mode(const char* const listen_port_string)
 /* brief : run the program in client mode.
    return: 0 on success, -1 otherwise.
  */
-int client_mode(const char* const server_name, const char* const port_string)
+int client_mode(const char* const server_name, const char* const port_string, const char* filename)
 {
 	char send_buffer[SEND_BUFFER_SIZE],
 	     recv_buffer[RECV_BUFFER_SIZE];
@@ -438,6 +444,7 @@ int client_mode(const char* const server_name, const char* const port_string)
     server_info.socket_fd = server_fd;
 	server_info.buffer = recv_buffer; 
 	server_info.buffer_size = sizeof(recv_buffer);
+	server_info.filename = filename;
  	/* create the receiving thread */
     if(pthread_create(&recv_handler_thread, NULL, recv_handler, &server_info ) < 0)
     {
@@ -450,7 +457,9 @@ int client_mode(const char* const server_name, const char* const port_string)
     	perror("server_mode()-> pthread_detach() has failed");
     } 
     /* send main loop */
-    while(((buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
+	sf = fopen(filename, "r");
+    //while(((buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
+    while(((buffer_len = read(sf, send_buffer, sizeof(send_buffer))) > 0 && 
     	    !exit_flag) || print_st_flag)
     {
     	/* print sent/recv information and loop again*/
@@ -487,7 +496,7 @@ int main(int argc, char **argv)
 		retval 		=  0;
 
 	char port_string [PORT_STRING_LEN],
-		 filename [1024],
+		 filename [32],
 		 hostname [MAX_HOSTNAME_LEN];
 
 	struct sigaction sa_sigset;
@@ -552,7 +561,7 @@ int main(int argc, char **argv)
   	/* prevent getopt() from printing error messages to stderr */
 	opterr = 0; 
 	/* parse arguments */
-	while((option = getopt(argc, argv, "lvshp:")) != -1)
+	while((option = getopt(argc, argv, "f:lvshp:")) != -1)
 	{
 		switch(option)
 		{
@@ -577,7 +586,7 @@ int main(int argc, char **argv)
 				return EXIT_SUCCESS;
 
 			case 'f':
-				strncpy(filename, optarg, 1024)
+				(void)strncpy(filename, optarg, sizeof(filename));
 				break;
 
 			default:
@@ -601,12 +610,12 @@ int main(int argc, char **argv)
 	if(listen_flag)
 	{
 		operating_mode = OPERATING_MODE_SERVER;
-		retval = server_mode(port_string);
+		retval = server_mode(port_string, filename);
 	}
 	else
 	{
 		operating_mode = OPERATING_MODE_CLIENT;
-		retval = client_mode(hostname, port_string);
+		retval = client_mode(hostname, port_string, filename);
 	}
 	/* library clean up */
 	if(udt_cleanup())
