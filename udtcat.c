@@ -228,7 +228,7 @@ void *recv_handler(void *recv_info_param)
 {
 	int recved_bytes = 0;
 	recv_info_t *info =  (recv_info_t*)recv_info_param;
-	int fd = fopen(info->filename, "w+");
+	FILE *fd = fopen(info->filename, "w+");
 	while(TRUE)
 	{
 		if((recved_bytes = recv_msg(info -> socket_fd, info -> buffer, info ->  buffer_size)) == -1)
@@ -375,7 +375,9 @@ int server_mode(const char* const listen_port_string, char* filename)
     	perror("udtcat: server_mode()-> pthread_detach() has failed");
     }
     /* receive the message length */
-	while(((send_buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
+	FILE *fd = fopen(filename, "r");
+	//while(((send_buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
+	while(((send_buffer_len = read(fd, send_buffer, sizeof(send_buffer))) > 0 && 
 		    !exit_flag) || print_st_flag)
     {
     	/* print sent/recv information and loop again*/
