@@ -459,7 +459,7 @@ int client_mode(const char* const server_name, const char* const port_string, co
     	perror("server_mode()-> pthread_detach() has failed");
     } 
     /* send main loop */
-	sf = fopen(filename, "r");
+	FILE* sf = fopen(filename, "r");
     //while(((buffer_len = read(STDIN_FILENO, send_buffer, sizeof(send_buffer))) > 0 && 
     while(((buffer_len = read(sf, send_buffer, sizeof(send_buffer))) > 0 && 
     	    !exit_flag) || print_st_flag)
